@@ -15,7 +15,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter {
         return new VH(v);
     }
 
-    int size = 3;
+    int size = 30;
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {

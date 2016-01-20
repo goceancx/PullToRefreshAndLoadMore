@@ -59,9 +59,9 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         //    initData();
-        header = getChildAt(0).findViewById(R.id.header);
-        body = getChildAt(0).findViewById(R.id.body);
-        footer = getChildAt(0).findViewById(R.id.footer);
+        header = findViewById(R.id.header);
+        body = findViewById(R.id.body);
+        footer = findViewById(R.id.footer);
         mRecyclerView = (RecyclerView) body.findViewById(R.id.ryc_views);
 
         DebugLog.e("header:" + header + " body:" + body + " footer:" + footer);
