@@ -1,4 +1,4 @@
-<img src="https://github.com/oceancx/AndroidLib/blob/master/gif/pull_to_refresh_and_loadmore.gif" >
+<img src="https://github.com/oceancx/PullToRefreshAndLoadMore/blob/master/gif/pull_to_refresh_and_loadmore.gif" >
 
 简介:alpha版本
 
