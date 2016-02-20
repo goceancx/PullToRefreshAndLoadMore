@@ -7,5 +7,6 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/tv"
         android:text="12312312312312321" />
 </LinearLayout>

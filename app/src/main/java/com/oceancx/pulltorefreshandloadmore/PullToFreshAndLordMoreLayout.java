@@ -9,14 +9,28 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 
 /**
  * 实现RecyclerView的下拉刷新上拉加载更多
+ * 今天最低目标:
+ * 实现下拉悬停
  * Created by oceancx on 15/11/12.
  */
 public class PullToFreshAndLordMoreLayout extends FrameLayout {
 
+    float initDownY, initDownX, lastDownX, lastDownY;
+    boolean shouldIntercept = false;
+    boolean mRvReachTopWhenDown = false;
+    boolean mRvReachBottomWhenDown = false;
+    /**
+     * child == 0 , 代表的是linearlayout
+     */
+    boolean setOnce = false;
+    boolean setOnce1 = false;
     private int mTouchSlop;
     private ViewDragHelper mViewDragHelper;
     private RecyclerView mRecyclerView;
@@ -24,25 +38,16 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
     private View footer;
     private View body;
     private RefreshAndLoadMoreListener mRLListener;
-
-    public void setRefreshAndLoadMoreListener(RefreshAndLoadMoreListener mRLListener) {
-        this.mRLListener = mRLListener;
-    }
-
-    public interface RefreshAndLoadMoreListener {
-        public void onLoadMore();
-
-        public void onRefresh();
-
-        public void onLoadMoreComplete();
-
-        public void onRefreshComplete();
-    }
-
+    private ProgressBar header_pgb;
+    private TextView header_tv;
+    private View header_hanging_layout;
+    private ImageView header_down_arrow;
+    private int offset_top = 0;
 
     public PullToFreshAndLordMoreLayout(Context context) {
         this(context, null);
     }
+
 
     public PullToFreshAndLordMoreLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -55,6 +60,10 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
 
     }
 
+    public void setRefreshAndLoadMoreListener(RefreshAndLoadMoreListener mRLListener) {
+        this.mRLListener = mRLListener;
+    }
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -63,12 +72,21 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
         body = findViewById(R.id.body);
         footer = findViewById(R.id.footer);
         mRecyclerView = (RecyclerView) body.findViewById(R.id.ryc_views);
-
+        header_hanging_layout = header.findViewById(R.id.header_hanging_layout);
+        header_pgb = (ProgressBar) header.findViewById(R.id.header_pgb);
+        header_down_arrow = (ImageView) header.findViewById(R.id.header_down_arrow_img);
+        header_tv = (TextView) header.findViewById(R.id.pull_to_refresh_tv);
         DebugLog.e("header:" + header + " body:" + body + " footer:" + footer);
+
 
     }
 
-
+    /**
+     * 测量两次 确定最终长度
+     *
+     * @param widthMeasureSpec
+     * @param heightMeasureSpec
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -81,50 +99,9 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         //onlyChild.layout(left, top, right, bottom);
         super.onLayout(changed, left, top, right, bottom);
+        DebugLog.e("header height: " + header.getMeasuredHeight() + " scale:" + getResources().getDisplayMetrics().scaledDensity);
         offsetTopAndBottom(-header.getMeasuredHeight());
     }
-
-
-    private class DragHelperCallback extends ViewDragHelper.Callback {
-
-        @Override
-        public boolean tryCaptureView(View child, int pointerId) {
-            return child == getChildAt(0);
-        }
-
-        @Override
-        public int clampViewPositionVertical(View child, int top, int dy) {
-            DebugLog.e("top:" + top);
-            if (top < -header.getMeasuredHeight()) {
-                top = -header.getMeasuredHeight();
-            } else if (top > footer.getMeasuredHeight()) {
-                top = footer.getMeasuredHeight();
-            }
-            return top;
-        }
-    }
-
-    /**
-     * hack 黑科技
-     * 如果RecyclerView滑动到顶部 , 那么再下拉,就可以进行下拉刷新
-     * 如果RecyclerView滑动到底部 , 那么再上拉,就可以加载更多
-     *
-     * @param ev
-     * @return
-     */
-    float initDownY, initDownX, lastDownX, lastDownY;
-    boolean shouldIntercept = false;
-
-    /**
-     * 刚开始的时候 Intercept == false
-     * RecyclerView可以进行滑动
-     * 当intercept == true的时候 就中的ReyclerView的滚动
-     *
-     * @param ev
-     * @return
-     */
-    boolean mRvReachTopWhenDown = false;
-    boolean mRvReachBottomWhenDown = false;
 
     /**
      * 判断RcyclerView是否在顶点
@@ -144,6 +121,11 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
         return false;
     }
 
+    /**
+     * 判断RcyclerView是否在底部
+     *
+     * @return
+     */
     private boolean isRvReachBottom() {
         int checkPos = mRecyclerView.getAdapter().getItemCount() - 1;
 
@@ -158,6 +140,13 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
         return false;
     }
 
+    /**
+     * 刚开始的时候 Intercept == false
+     * RecyclerView可以进行滑动
+     *
+     * @param ev
+     * @return
+     */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         shouldIntercept = false;
@@ -171,6 +160,7 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
                 mViewDragHelper.processTouchEvent(ev);
                 mRvReachTopWhenDown = isRvReachTop();
                 mRvReachBottomWhenDown = isRvReachBottom();
+
             }
             break;
             case MotionEvent.ACTION_MOVE: {
@@ -178,6 +168,7 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
                 float mx = ev.getX();
                 float dx = mx - initDownX;
                 float dy = my - initDownY;
+
                 /**
                  * 判断是否为下移,如果是下移,切在down的时候RvReachTop,那么就要开始Intercept
                  * 下移的条件是  dy > touchSlop && checkDegree >45
@@ -219,14 +210,45 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 if (mRvReachTopWhenDown) {
-                    if (mRLListener != null) {
-                        mRLListener.onRefresh();
+                    /**
+                     * down事件的时候,Rv处于顶部,因此此处是下拉刷新
+                     * 要做的事情:
+                     * 1. 判断拉下来的高度是否超过hanging layout 的高度
+                     *      如果超过了,那么就可以将hanging layout给hang了
+                     *      如果没有超过,那么就直接把rv推上去
+                     * 2. 在当次动画没有完结之前,对后来的Up事件不响应
+                     * 3. 如果超过了hanging layout 的高度, 那么就等通知,等到rv通知后,将rv顶到顶部即可
+                     */
+                    int hanging_h = header_hanging_layout.getMeasuredHeight();
+                    DebugLog.e("offset_top:" + offset_top + " hanging_h:" + hanging_h + " header height:" + header.getMeasuredHeight());
+
+                    if (offset_top >= hanging_h) {
+
+                        /**
+                         * 不将rv上滑
+                         */
+                        if (offset_top == header.getMeasuredHeight() || mViewDragHelper.smoothSlideViewTo(getChildAt(0), 0, header.getMeasuredHeight())) {
+                            ViewCompat.postInvalidateOnAnimation(this);
+                            if (mRLListener != null) {
+                                header_pgb.setVisibility(VISIBLE);
+                                header_down_arrow.setVisibility(INVISIBLE);
+                                mRLListener.onRefresh();
+                            }
+                        }
+
+                    } else {
+                        if (mViewDragHelper.smoothSlideViewTo(getChildAt(0), 0, 0)) {
+                            mRvReachTopWhenDown = false;
+                            offset_top = 0;
+                            ViewCompat.postInvalidateOnAnimation(this);
+                        }
                     }
-                    if (mViewDragHelper.smoothSlideViewTo(getChildAt(0), 0, 0)) {
-                        mRvReachTopWhenDown = false;
-                        ViewCompat.postInvalidateOnAnimation(this);
-                        mRLListener.onRefreshComplete();
-                    }
+
+//                    if (mViewDragHelper.smoothSlideViewTo(getChildAt(0), 0, 0)) {
+//                        mRvReachTopWhenDown = false;
+//                        ViewCompat.postInvalidateOnAnimation(this);
+//                        mRLListener.onRefreshComplete();
+//                    }
                 } else if (mRvReachBottomWhenDown) {
                     if (mRLListener != null) {
                         mRLListener.onLoadMore();
@@ -240,5 +262,74 @@ public class PullToFreshAndLordMoreLayout extends FrameLayout {
                 return true;
         }
         return true;
+    }
+
+    public void onFinishRefresh() {
+        /**
+         * 这里才把hanginglayout的高度给顶回去
+         */
+        if (mViewDragHelper.smoothSlideViewTo(getChildAt(0), 0, 0)) {
+            mRvReachTopWhenDown = false;
+            ViewCompat.postInvalidateOnAnimation(this);
+            header_pgb.setVisibility(INVISIBLE);
+            header_down_arrow.setRotation(0);
+            header_down_arrow.setVisibility(VISIBLE);
+            //header_tv.setText("下拉刷新");
+            setOnce = false;
+            setOnce1 = false;
+        }
+
+    }
+
+    public interface RefreshAndLoadMoreListener {
+        public void onLoadMore();
+
+        public void onRefresh();
+
+        public void onLoadMoreComplete();
+
+        public void onRefreshComplete();
+    }
+
+    private class DragHelperCallback extends ViewDragHelper.Callback {
+
+        @Override
+        public boolean tryCaptureView(View child, int pointerId) {
+            return child == getChildAt(0);
+        }
+
+        @Override
+        public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
+            super.onViewPositionChanged(changedView, left, top, dx, dy);
+            offset_top = top;
+            int hanging_h = header_hanging_layout.getMeasuredHeight();
+            if (offset_top > hanging_h && dy > 0 && !setOnce) {
+                /**
+                 * 下拉
+                 */
+//                header_tv.setText("释放刷新");
+                header_down_arrow.setRotation(180);
+                setOnce = true;
+                setOnce1 = false;
+
+            } else if (offset_top < hanging_h && dy <= 0 && !setOnce1) {
+                /**
+                 * 上滚
+                 */
+                header_down_arrow.setRotation(0);
+                setOnce1 = true;
+                setOnce = false;
+//                header_tv.setText("下拉刷新");
+            }
+        }
+
+        @Override
+        public int clampViewPositionVertical(View child, int top, int dy) {
+            DebugLog.e("header : height:" + header.getMeasuredHeight() + "  footer height:" + footer.getMeasuredHeight() + "  top:" + top);
+            if (top > header.getMeasuredHeight()) {
+                top = header.getMeasuredHeight();
+            }
+            return top;
+        }
     }
 }

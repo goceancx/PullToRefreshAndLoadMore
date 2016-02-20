@@ -1,59 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
     android:id="@+id/header"
-    android:background="#cda"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:background="#f1f1f1"
+    android:orientation="vertical">
 
-    android:layout_height="wrap_content">
-    <TextView
+    <!--android:background="#cda"-->
+
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦"/>
+        android:layout_height="70dp" />
 
-    <TextView
+
+    <FrameLayout
+        android:id="@+id/header_hanging_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦2222"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦2222"/>
+        android:layout_height="80dp"
+        android:orientation="horizontal">
 
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦"/>
+        <ProgressBar
+            android:id="@+id/header_pgb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="60dp"
+            android:indeterminateDrawable="@drawable/pgb_circle"
+            android:visibility="invisible" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦2222"/>
+        <ImageView
+            android:id="@+id/header_down_arrow_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="60dp"
+            android:src="@drawable/ic_arrow_downward_black_18dp"
+            android:visibility="visible" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="啦啦啦啦啦啦啦2222"/>
-
+        <TextView
+            android:id="@+id/pull_to_refresh_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="下拉刷新" />
+    </FrameLayout>
 
 
 </LinearLayout>

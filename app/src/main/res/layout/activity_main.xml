@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.oceancx.pulltorefreshandloadmore.MainActivity">
 
+
+    <!--<Button-->
+        <!--android:id="@+id/pull_to_refresh_control_bt"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginLeft="20dp"-->
+        <!--android:layout_marginRight="20dp"-->
+        <!--android:gravity="center"-->
+        <!--android:text="停止刷新" />-->
+
     <com.oceancx.pulltorefreshandloadmore.PullToFreshAndLordMoreLayout
-        android:layout_width="match_parent"
         android:id="@+id/pull_to_refresh"
+        android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
@@ -22,4 +33,4 @@
             <include layout="@layout/pull_to_refresh_footer" />
         </LinearLayout>
     </com.oceancx.pulltorefreshandloadmore.PullToFreshAndLordMoreLayout>
-</RelativeLayout>
+</LinearLayout>
